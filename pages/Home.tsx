@@ -53,11 +53,11 @@ export const Home: React.FC = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 w-full sm:w-auto animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              <Link to="/booking" className="w-full sm:w-auto">
+              <a href="https://wa.me/528111844" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                 <Button variant="primary" size="lg" className="w-full sm:w-auto shadow-2xl h-14 sm:h-16 text-[10px] sm:text-xs px-10 sm:px-14 border-2 border-black dark:border-white hover:bg-brand-500 hover:border-brand-500 hover:text-white transition-all duration-500">
                   Reservar Ahora
                 </Button>
-              </Link>
+              </a>
               <Link to="/ai-consultant" className="w-full sm:w-auto">
                 <Button variant="outline" size="lg" className="w-full sm:w-auto h-14 sm:h-16 flex items-center justify-center gap-4 px-8 sm:px-10 border-2 hover:border-brand-500 group text-[10px] sm:text-xs uppercase font-bold">
                   <Sparkles className="w-4 h-4 text-brand-500 group-hover:scale-125 transition-transform" />

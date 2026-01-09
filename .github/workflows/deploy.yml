@@ -26,7 +26,6 @@ jobs:
 
       - name: Build site
         env:
-          VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           # Ajusta el base path para servir en yosoy.mx/dianastudio
           VITE_BASE_PATH: /dianastudio/
         run: npm run build

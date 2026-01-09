@@ -5,6 +5,7 @@ import { BookingState, ServiceCategory, Service, Stylist } from '../types';
 import { Button } from '../components/Button';
 import { Ticket } from '../components/Ticket';
 import { ImagePlaceholder } from '../components/ImagePlaceholder';
+import { SvgBackdrop } from '../components/SvgBackdrop';
 import { format, addDays, isSameDay, startOfToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Link, useNavigate } from 'react-router-dom';
@@ -30,6 +31,8 @@ export const Booking: React.FC = () => {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
   const [promoCode, setPromoCode] = useState('');
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const [isValidPromo, setIsValidPromo] = useState<boolean | null>(null);
 
   // Data State
   const [servicesList, setServicesList] = useState<Service[]>([]);
@@ -45,15 +48,22 @@ export const Booking: React.FC = () => {
     customerEmail: ''
   });
 
+  const steps: Step[] = ['SERVICE', 'DATETIME', 'STYLIST', 'DETAILS', 'CONFIRMATION'];
+  const progress = ((steps.indexOf(currentStep) + 1) / (steps.length - 1)) * 100;
+
+  const [loadingError, setLoadingError] = useState(false);
+
   // Fetch Data
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoadingError(false);
         const [s, st] = await Promise.all([api.getServices(), api.getStylists()]);
         setServicesList(s);
         setStylistsList(st);
       } catch (e) {
         console.error("Failed to load data", e);
+        setLoadingError(true);
       }
     };
     fetchData();
@@ -74,12 +84,29 @@ export const Booking: React.FC = () => {
       if (hasHaircut && hasColor && service.category === ServiceCategory.COLOR) discount = 0.15;
       else if (hasColor && hasTreatment && service.category === ServiceCategory.TREATMENT) discount = 0.20;
       const finalPrice = Math.round(service.price * (1 - discount));
-      totalDiscounted += finalPrice;
       return { ...service, isDiscounted: discount > 0, finalPrice };
     });
 
-    return { services, totalOriginal, totalDiscounted };
-  }, [bookingData.serviceIds, servicesList]);
+    const subtotal = services.reduce((acc, s) => acc + s.finalPrice, 0);
+    const promoAmount = Math.round(subtotal * promoDiscount);
+    totalDiscounted = subtotal - promoAmount;
+
+    return { services, totalOriginal, totalDiscounted, promoAmount };
+  }, [bookingData.serviceIds, servicesList, promoDiscount]);
+
+  const handleApplyPromo = () => {
+    const code = promoCode.toUpperCase();
+    if (code === 'DIANA10') {
+      setPromoDiscount(0.1);
+      setIsValidPromo(true);
+    } else if (code === 'VIP25') {
+      setPromoDiscount(0.25);
+      setIsValidPromo(true);
+    } else {
+      setPromoDiscount(0);
+      setIsValidPromo(false);
+    }
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -166,40 +193,58 @@ export const Booking: React.FC = () => {
   const selectedStylist = stylistsList.find(s => s.id === bookingData.stylistId);
 
   return (
-    <div className="lg:h-[calc(100vh-40px)] flex flex-col lg:flex-row bg-white dark:bg-dark-900 overflow-hidden font-sans">
+    <div className="relative lg:h-[calc(100vh-40px)] flex flex-col lg:flex-row bg-white dark:bg-dark-900 overflow-hidden font-sans">
+
+      <SvgBackdrop className="z-0 opacity-70" />
 
       {currentStep === 'SERVICE' && bookingData.serviceIds.length > 0 && (
-        <div className="fixed top-6 right-[88px] z-[101] animate-scale-in flex items-center gap-2">
-          <div className="bg-white/95 dark:bg-black/95 backdrop-blur px-4 py-3 border border-zinc-200 dark:border-zinc-800 shadow-2xl flex items-center gap-4">
-            <div className="flex flex-col items-start leading-none">
+        <div className="fixed bottom-0 left-0 right-0 sm:top-6 sm:bottom-auto sm:right-[88px] sm:left-auto z-[101] animate-scale-in flex items-center justify-center sm:justify-end p-4 sm:p-0">
+          <div className="glass-pure px-4 py-3 border border-zinc-200 dark:border-zinc-800 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-2xl flex items-center gap-4 w-full sm:w-auto max-w-md rounded-2xl">
+            <div className="flex flex-col items-start leading-none flex-grow sm:flex-grow-0">
               <span className="text-[7px] font-black text-zinc-400 uppercase tracking-widest mb-1">Total Inversión</span>
               <div className="flex items-center gap-2">
                 {totals.totalOriginal !== totals.totalDiscounted && (
                   <span className="text-[10px] line-through text-zinc-400 font-mono opacity-60">${totals.totalOriginal}</span>
                 )}
-                <span className="text-sm font-mono font-black text-brand-500">${totals.totalDiscounted}</span>
+                <span className="text-sm font-mono font-black text-brand-500 animate-pulse-glow">${totals.totalDiscounted}</span>
               </div>
             </div>
             <button
               onClick={() => changeStep('DATETIME')}
-              className="h-10 bg-black dark:bg-white text-white dark:text-black px-6 font-black flex items-center gap-2 hover:bg-brand-500 dark:hover:bg-brand-500 hover:text-white transition-all group"
+              className="h-10 bg-black dark:bg-white text-white dark:text-black px-6 font-black flex items-center gap-2 hover:bg-brand-500 dark:hover:bg-brand-500 hover:text-white transition-all group shrink-0 tap-active rounded-xl shadow-lg relative overflow-hidden"
             >
-              <span className="text-[9px] tracking-widest uppercase">Siguiente</span>
-              <ArrowRight className="w-4 h-4" />
+              <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+              <span className="text-[9px] tracking-widest uppercase relative z-10">Siguiente</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform relative z-10" />
             </button>
           </div>
         </div>
       )}
 
       <div className="hidden lg:flex lg:w-[22%] flex-col justify-end p-8 bg-black border-r border-zinc-900 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 pointer-events-none"><ImagePlaceholder type="hero" className="w-full h-full scale-150" /></div>
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent z-10"></div>
+          <ImagePlaceholder type="hero" className="w-full h-full scale-150 animate-float" />
+        </div>
         <div className="relative z-10">
+          <div className="w-10 h-1 bg-brand-500 mb-6"></div>
           <h1 className="text-[2.5vw] font-black tracking-tighter text-white uppercase leading-none mb-4">DIANA<br />STUDIO.</h1>
           <p className="text-[7px] font-black text-zinc-600 uppercase tracking-[0.4em]">Monterrey High-End Studio</p>
         </div>
       </div>
 
-      <div className="flex-grow lg:w-[78%] overflow-y-auto px-6 py-10 lg:px-12 lg:py-16 no-scrollbar relative bg-white dark:bg-dark-900">
+      <div className="flex-grow lg:w-[78%] overflow-y-auto px-6 py-10 lg:px-12 lg:py-16 no-scrollbar relative bg-white dark:bg-dark-900 transition-colors duration-500">
+
+        {/* PROGRESS BAR */}
+        {currentStep !== 'CONFIRMATION' && (
+          <div className="absolute top-0 left-0 right-0 h-1 bg-zinc-100 dark:bg-zinc-800 z-50">
+            <div
+              className="h-full bg-brand-500 transition-all duration-700 ease-out"
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+        )}
+
         <div className="max-w-5xl mx-auto w-full pb-20">
 
           <div className={`transition-all duration-300 transform ${animating ? 'opacity-0 scale-[0.99]' : 'opacity-100 scale-100'}`}>
@@ -217,37 +262,55 @@ export const Booking: React.FC = () => {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                  {servicesList.map((s, idx) => {
-                    const sel = bookingData.serviceIds.includes(s.id);
-                    const info = totals.services.find(ts => ts.id === s.id);
-                    const disc = sel && info?.isDiscounted;
-                    const delayStyle = { "--delay": `${idx * 0.03}s` } as React.CSSProperties;
-                    return (
-                      <button
-                        key={s.id} onClick={() => toggleService(s.id)}
-                        style={delayStyle}
-                        className={`relative aspect-[16/9] flex flex-col justify-between p-5 border-2 transition-all duration-300 text-left animate-delay ${sel ? 'bg-black dark:bg-white border-brand-500 shadow-xl scale-[0.98]' : 'bg-zinc-50 dark:bg-zinc-900 border-transparent hover:border-zinc-200 dark:hover:border-zinc-800'
-                          }`}
-                      >
-                        <div className={`w-5 h-5 border flex items-center justify-center mb-3 ${sel ? 'bg-brand-500 border-brand-500' : 'border-zinc-300 dark:border-zinc-700'}`}>
-                          {sel && <Check className="w-3 h-3 text-white" strokeWidth={5} />}
-                        </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {loadingError ? (
+                    <div className="col-span-full py-12 text-center">
+                      <p className="text-[10px] font-black uppercase text-brand-500 mb-4">Error al conectar con el servidor</p>
+                      <Button variant="outline" onClick={() => window.location.reload()} className="text-[9px]">Reintentar</Button>
+                    </div>
+                  ) : servicesList.length === 0 ? (
+                    // SKELETON LOADERS
+                    [...Array(6)].map((_, i) => (
+                      <div key={i} className="aspect-[16/9] bg-zinc-50 dark:bg-zinc-900 animate-pulse border border-zinc-100 dark:border-zinc-800 p-5 flex flex-col justify-between">
+                        <div className="w-5 h-5 bg-zinc-200 dark:bg-zinc-800"></div>
                         <div>
-                          <h3 className={`text-xl font-black uppercase tracking-tighter mb-1 ${sel ? 'text-white dark:text-black' : 'text-zinc-400 group-hover:text-black dark:group-hover:text-white'}`}>{s.name}</h3>
-                          <div className="flex justify-between items-end">
-                            <span className="text-[7px] font-black uppercase text-zinc-500">{s.category}</span>
-                            <div className="flex items-baseline gap-2">
-                              {disc && <span className="text-[10px] font-mono text-zinc-500 line-through">${s.price}</span>}
-                              <span className={`text-lg font-mono font-black ${sel ? 'text-brand-500' : 'text-zinc-800 dark:text-zinc-200'}`}>
-                                ${disc ? info.finalPrice : s.price}
-                              </span>
+                          <div className="h-6 bg-zinc-200 dark:bg-zinc-800 w-3/4 mb-2"></div>
+                          <div className="h-2 bg-zinc-200 dark:bg-zinc-800 w-1/4"></div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    servicesList.map((s, idx) => {
+                      const sel = bookingData.serviceIds.includes(s.id);
+                      const info = totals.services.find(ts => ts.id === s.id);
+                      const disc = sel && info?.isDiscounted;
+                      const delayStyle = { "--delay": `${idx * 0.03}s` } as React.CSSProperties;
+                      return (
+                        <button
+                          key={s.id} onClick={() => toggleService(s.id)}
+                          style={delayStyle}
+                          className={`relative aspect-[16/9] flex flex-col justify-between p-5 border-2 transition-all duration-300 text-left hover-lift tap-active z-10 cursor-pointer ${sel ? 'bg-black dark:bg-white border-brand-500 shadow-xl scale-[0.98]' : 'bg-zinc-50 dark:bg-zinc-900 border-transparent hover:border-zinc-200 dark:hover:border-zinc-800'
+                            }`}
+                        >
+                          <div className={`w-5 h-5 border flex items-center justify-center mb-3 ${sel ? 'bg-brand-500 border-brand-500 shadow-[0_0_15px_rgba(244,63,94,0.4)]' : 'border-zinc-300 dark:border-zinc-700'}`}>
+                            {sel && <Check className="w-3 h-3 text-white" strokeWidth={5} />}
+                          </div>
+                          <div>
+                            <h3 className={`text-xl font-black uppercase tracking-tighter mb-1 transition-colors ${sel ? 'text-white dark:text-black' : 'text-zinc-400 group-hover:text-black dark:group-hover:text-white'}`}>{s.name}</h3>
+                            <div className="flex justify-between items-end">
+                              <span className="text-[7px] font-black uppercase text-zinc-500">{s.category}</span>
+                              <div className="flex items-baseline gap-2">
+                                {disc && <span className="text-[10px] font-mono text-zinc-500 line-through">${s.price}</span>}
+                                <span className={`text-lg font-mono font-black ${sel ? 'text-brand-500' : 'text-zinc-800 dark:text-zinc-200'}`}>
+                                  ${disc ? info.finalPrice : s.price}
+                                </span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </button>
-                    );
-                  })}
+                        </button>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             )}
@@ -266,7 +329,7 @@ export const Booking: React.FC = () => {
                     const sel = bookingData.date && isSameDay(bookingData.date, d);
                     return (
                       <button key={d.toISOString()} onClick={() => setBookingData({ ...bookingData, date: d, time: null })}
-                        className={`py-6 flex flex-col items-center border transition-all ${sel ? 'bg-black text-white border-brand-500 scale-105 shadow-xl' : 'bg-zinc-50 dark:bg-zinc-900 text-zinc-400 border-transparent hover:bg-zinc-100'}`}>
+                        className={`py-6 flex flex-col items-center border transition-all hover-lift tap-active ${sel ? 'bg-black text-white border-brand-500 scale-105 shadow-xl' : 'bg-zinc-50 dark:bg-zinc-900 text-zinc-400 border-transparent hover:bg-zinc-100'}`}>
                         <span className="text-[7px] font-black uppercase mb-1">{format(d, 'EEE', { locale: es })}</span>
                         <span className="text-lg font-black">{format(d, 'd')}</span>
                       </button>
@@ -276,7 +339,7 @@ export const Booking: React.FC = () => {
                 <div className="grid grid-cols-3 gap-2">
                   {["10:00", "11:00", "12:00", "13:00", "15:00", "16:00", "17:00", "18:00", "19:00"].map(t => (
                     <button key={t} onClick={() => { setBookingData({ ...bookingData, time: t }); changeStep('STYLIST'); }}
-                      className={`py-6 text-[10px] font-black border transition-all ${bookingData.time === t ? 'bg-brand-500 text-white border-brand-500 shadow-lg' : 'bg-zinc-50 dark:bg-zinc-900 border-transparent hover:border-black'}`}>
+                      className={`py-6 text-[10px] font-black border transition-all hover-lift tap-active ${bookingData.time === t ? 'bg-brand-500 text-white border-brand-500 shadow-lg' : 'bg-zinc-50 dark:bg-zinc-900 border-transparent hover:border-black'}`}>
                       {t}
                     </button>
                   ))}
@@ -294,19 +357,30 @@ export const Booking: React.FC = () => {
                   <h2 className="text-4xl font-black uppercase tracking-tighter">Artista</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {stylistsList.map(s => {
-                    const disabled = s.id === 'staff';
-                    return (
-                      <button key={s.id} disabled={disabled} onClick={() => { setBookingData({ ...bookingData, stylistId: s.id }); changeStep('DETAILS'); }}
-                        className={`relative flex flex-col p-8 border-2 transition-all text-left ${bookingData.stylistId === s.id ? 'border-brand-500 bg-black text-white shadow-xl' : disabled ? 'opacity-50 cursor-not-allowed bg-zinc-100 dark:bg-zinc-950' : 'bg-zinc-50 dark:bg-zinc-900 border-transparent hover:border-zinc-300'}`}>
-                        {disabled && <span className="absolute top-4 right-4 text-[7px] font-black bg-white dark:bg-black px-2 py-1 uppercase tracking-widest text-zinc-400 border border-zinc-100">Sin Cupo</span>}
-                        <div className="w-12 h-12 mb-6 bg-zinc-200 dark:bg-zinc-800 border overflow-hidden"><ImagePlaceholder type="stylist" seed={s.id} /></div>
-                        <h3 className="text-2xl font-black uppercase tracking-tighter leading-none mb-1">{s.name}</h3>
-                        <p className="text-[8px] font-black text-brand-500 uppercase tracking-widest mb-3">{s.specialties[0]}</p>
-                        <p className="text-[10px] italic leading-tight text-zinc-500">{s.bio}</p>
-                      </button>
-                    );
-                  })}
+                  {stylistsList.length === 0 ? (
+                    [...Array(2)].map((_, i) => (
+                      <div key={i} className="p-8 border-2 border-transparent bg-zinc-50 dark:bg-zinc-900 animate-pulse">
+                        <div className="w-12 h-12 bg-zinc-200 dark:bg-zinc-800 mb-6"></div>
+                        <div className="h-8 bg-zinc-200 dark:bg-zinc-800 w-1/2 mb-4"></div>
+                        <div className="h-2 bg-zinc-200 dark:bg-zinc-800 w-1/4 mb-2"></div>
+                        <div className="h-10 bg-zinc-200 dark:bg-zinc-800 w-full opacity-50"></div>
+                      </div>
+                    ))
+                  ) : (
+                    stylistsList.map(s => {
+                      const disabled = s.id === 'staff';
+                      return (
+                        <button key={s.id} disabled={disabled} onClick={() => { setBookingData({ ...bookingData, stylistId: s.id }); changeStep('DETAILS'); }}
+                          className={`relative flex flex-col p-8 border-2 transition-all text-left hover-lift tap-active ${bookingData.stylistId === s.id ? 'border-brand-500 bg-black text-white shadow-xl' : disabled ? 'opacity-50 cursor-not-allowed bg-zinc-100 dark:bg-zinc-950' : 'bg-zinc-50 dark:bg-zinc-900 border-transparent hover:border-zinc-300'}`}>
+                          {disabled && <span className="absolute top-4 right-4 text-[7px] font-black bg-white dark:bg-black px-2 py-1 uppercase tracking-widest text-zinc-400 border border-zinc-100">Sin Cupo</span>}
+                          <div className="w-12 h-12 mb-6 bg-zinc-200 dark:bg-zinc-800 border overflow-hidden rounded-full shadow-lg"><ImagePlaceholder type="stylist" seed={s.id} /></div>
+                          <h3 className="text-2xl font-black uppercase tracking-tighter leading-none mb-1">{s.name}</h3>
+                          <p className="text-[8px] font-black text-brand-500 uppercase tracking-widest mb-3">{s.specialties?.[0] || 'Experto'}</p>
+                          <p className="text-[10px] italic leading-tight text-zinc-500 line-clamp-2">{s.bio}</p>
+                        </button>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             )}
@@ -324,34 +398,47 @@ export const Booking: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-12">
                     <div className="relative">
                       <label htmlFor="customerName" className="text-[8px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-1 block">Nombre Completo</label>
-                      <input id="customerName" type="text" placeholder="EJ. MARÍA GARCÍA" className="w-full bg-transparent border-b border-zinc-200 text-xl font-black py-2 focus:border-black dark:focus:border-white outline-none uppercase" value={bookingData.customerName} onChange={e => setBookingData({ ...bookingData, customerName: e.target.value })} />
+                      <input id="customerName" type="text" placeholder="EJ. MARÍA GARCÍA" className="w-full bg-transparent border-b border-zinc-200 text-xl font-black py-2 focus:border-black dark:focus:border-white outline-none uppercase placeholder:text-[10px] placeholder:tracking-widest" value={bookingData.customerName} onChange={e => setBookingData({ ...bookingData, customerName: e.target.value })} />
                       {touched.customerName && errors.customerName && <span className="text-[8px] text-brand-500 uppercase font-black absolute -bottom-5">{errors.customerName}</span>}
                     </div>
                     <div className="relative">
                       <label htmlFor="customerPhone" className="text-[8px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-1 block">WhatsApp</label>
-                      <input id="customerPhone" type="tel" placeholder="+52 00 0000-0000" className="w-full bg-transparent border-b border-zinc-200 text-xl font-black py-2 focus:border-black dark:focus:border-white outline-none uppercase" value={bookingData.customerPhone} onChange={e => setBookingData({ ...bookingData, customerPhone: formatPhoneNumber(e.target.value) })} />
+                      <input id="customerPhone" type="tel" placeholder="+52 00 0000-0000" className="w-full bg-transparent border-b border-zinc-200 text-xl font-black py-2 focus:border-black dark:focus:border-white outline-none uppercase placeholder:text-[10px] placeholder:tracking-widest" value={bookingData.customerPhone} onChange={e => setBookingData({ ...bookingData, customerPhone: formatPhoneNumber(e.target.value) })} />
                       {touched.customerPhone && errors.customerPhone && <span className="text-[8px] text-brand-500 uppercase font-black absolute -bottom-5">{errors.customerPhone}</span>}
                     </div>
                     <div className="relative">
                       <label htmlFor="customerEmail" className="text-[8px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-1 block">Correo Electrónico</label>
-                      <input id="customerEmail" type="email" placeholder="EMAIL@EJEMPLO.COM" className="w-full bg-transparent border-b border-zinc-200 text-xl font-black py-2 focus:border-black dark:focus:border-white outline-none" value={bookingData.customerEmail} onChange={e => setBookingData({ ...bookingData, customerEmail: e.target.value })} />
+                      <input id="customerEmail" type="email" placeholder="EMAIL@EJEMPLO.COM" className="w-full bg-transparent border-b border-zinc-200 text-xl font-black py-2 focus:border-black dark:focus:border-white outline-none placeholder:text-[10px] placeholder:tracking-widest" value={bookingData.customerEmail} onChange={e => setBookingData({ ...bookingData, customerEmail: e.target.value })} />
                       {touched.customerEmail && errors.customerEmail && <span className="text-[8px] text-brand-500 uppercase font-black absolute -bottom-5">{errors.customerEmail}</span>}
                     </div>
 
                     {/* TARJETA DE CÓDIGO PROMOCIONAL ROSA */}
-                    <div className="bg-brand-500 p-6 flex flex-col justify-center relative shadow-xl transform hover:rotate-1 transition-transform">
-                      <div className="absolute top-2 right-2 opacity-20"><Tag className="w-8 h-8 text-white" /></div>
+                    <div className="bg-brand-500 p-6 flex flex-col justify-center relative shadow-xl transform hover:rotate-1 transition-transform group overflow-hidden">
+                      <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"></div>
+                      <div className="absolute top-2 right-2 opacity-20"><Tag className="w-8 h-8 text-white group-hover:rotate-12 transition-transform" /></div>
                       <label htmlFor="promoCode" className="text-[9px] font-black uppercase tracking-[0.3em] text-white/90 mb-3 block">¿Tienes un código?</label>
-                      <div className="relative flex items-center">
+                      <div className="relative flex gap-2">
                         <input
                           id="promoCode"
                           type="text"
                           className="w-full bg-white/10 border-b-2 border-white/40 text-2xl font-black py-2 outline-none uppercase placeholder:text-white/20 text-white focus:border-white transition-colors"
                           placeholder="DIANA10"
                           value={promoCode}
-                          onChange={e => setPromoCode(e.target.value.replace(/[^a-zA-Z0-9]/g, ''))}
+                          onChange={e => {
+                            setPromoCode(e.target.value.replace(/[^a-zA-Z0-9]/g, ''));
+                            setIsValidPromo(null);
+                          }}
                         />
+                        <button
+                          type="button"
+                          onClick={handleApplyPromo}
+                          className="px-4 bg-white text-brand-500 font-black text-[10px] uppercase tracking-widest hover:bg-black hover:text-white transition-all tap-active shrink-0"
+                        >
+                          Aplicar
+                        </button>
                       </div>
+                      {isValidPromo === true && <p className="text-[8px] font-black uppercase text-white mt-2 animate-bounce">¡Código Aplicado!</p>}
+                      {isValidPromo === false && <p className="text-[8px] font-black uppercase text-brand-950 mt-2">Código Inválido</p>}
                     </div>
                   </div>
 
@@ -377,6 +464,7 @@ export const Booking: React.FC = () => {
                       <span className="text-[8px] font-black uppercase text-zinc-500 dark:text-zinc-400 mb-1 block">Inversión Final de Imagen</span>
                       <div className="flex items-baseline gap-3 justify-center md:justify-start">
                         {totals.totalOriginal !== totals.totalDiscounted && <span className="text-lg font-mono text-zinc-600 line-through opacity-50">${totals.totalOriginal}</span>}
+                        {totals.promoAmount > 0 && <span className="text-[10px] font-black text-brand-500 uppercase tracking-[0.2em] animate-pulse-glow">-{totals.promoAmount} PROMO</span>}
                         <span className="text-4xl font-mono font-black text-white dark:text-black">${totals.totalDiscounted}</span>
                       </div>
                     </div>

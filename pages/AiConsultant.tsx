@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { QUICK_PROMPTS } from '../constants';
 import { Button } from '../components/Button';
 import { ChatMessageItem } from '../components/ChatMessageItem';
+import { SvgBackdrop } from '../components/SvgBackdrop';
 
 export const AiConsultant: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -117,8 +118,9 @@ export const AiConsultant: React.FC = () => {
   };
 
   return (
-    <div className="bg-zinc-50 dark:bg-black h-[calc(100vh-64px)] flex flex-col pt-4">
-      <div className="w-full max-w-3xl mx-auto flex-grow flex flex-col bg-white dark:bg-dark-900 border-x border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+    <div className="relative bg-zinc-50 dark:bg-black h-[calc(100vh-64px)] flex flex-col pt-4 overflow-hidden">
+      <SvgBackdrop className="opacity-70" />
+      <div className="w-full max-w-3xl mx-auto flex-grow flex flex-col bg-white dark:bg-dark-900 border-x border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden relative z-10">
 
         <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center bg-white/80 dark:bg-dark-900/80 backdrop-blur-sm z-10">
           <div className="flex items-center gap-4">

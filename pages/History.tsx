@@ -7,6 +7,7 @@ import { BookingStatus, BookingHistoryItem } from '../types';
 import { Button } from '../components/Button';
 import { ImagePlaceholder } from '../components/ImagePlaceholder';
 import { Link } from 'react-router-dom';
+import { SvgBackdrop } from '../components/SvgBackdrop';
 
 import { api } from '../services/api';
 
@@ -60,14 +61,15 @@ export const History: React.FC = () => {
     );
   }
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12">
+    <div className="relative max-w-4xl mx-auto px-6 py-12 overflow-hidden">
+    <SvgBackdrop className="opacity-70" />
 
-    <div className="mb-12 border-b border-black dark:border-white pb-6">
+    <div className="mb-12 border-b border-black dark:border-white pb-6 relative z-10">
       <h1 className="text-4xl font-bold text-black dark:text-white tracking-tighter uppercase">Bitácora de Estilo</h1>
     </div>
 
     {historyItems.length === 0 ? (
-      <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
+      <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in relative z-10">
         <div className="w-32 h-32 mb-8 relative">
           <svg viewBox="0 0 100 100" className="w-full h-full text-zinc-200 dark:text-zinc-800 stroke-current" fill="none" strokeWidth="1">
             <circle cx="50" cy="50" r="40" strokeDasharray="4 4" />

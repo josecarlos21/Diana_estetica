@@ -5,7 +5,7 @@ import stylistRoutes from './routes/stylists'
 import bookingRoutes from './routes/bookings'
 
 const app = express()
-const port = 3001
+const port = 3002
 
 app.use(cors())
 app.use(express.json())

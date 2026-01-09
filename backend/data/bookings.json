@@ -35,5 +35,64 @@
       "rating": 5,
       "avatarUrl": ""
     }
+  },
+  {
+    "id": "BK-9351-1767938527205",
+    "serviceIds": [
+      "s1",
+      "s2",
+      "s3"
+    ],
+    "stylistId": "diana",
+    "date": "2026-01-08T06:00:00.000Z",
+    "time": "11:00",
+    "customerName": "jose",
+    "customerPhone": "+52 52 5252-5252",
+    "customerEmail": "jose@livd.com",
+    "status": "confirmed",
+    "createdAt": "2026-01-09T06:02:07.205Z",
+    "services": [
+      {
+        "service": {
+          "id": "s1",
+          "name": "Signature Cut",
+          "description": "Diseño de corte personalizado basado en tu estructura ósea.",
+          "price": 850,
+          "durationMin": 60,
+          "category": "Corte"
+        }
+      },
+      {
+        "service": {
+          "id": "s2",
+          "name": "Peinado Social",
+          "description": "Estilizado de larga duración para eventos exclusivos.",
+          "price": 950,
+          "durationMin": 60,
+          "category": "Peinado"
+        }
+      },
+      {
+        "service": {
+          "id": "s3",
+          "name": "Balayage Premium",
+          "description": "Técnica exclusiva de iluminación orgánica sin marcas.",
+          "price": 2800,
+          "durationMin": 240,
+          "category": "Colorimetría"
+        }
+      }
+    ],
+    "stylist": {
+      "id": "diana",
+      "name": "Diana",
+      "specialties": [
+        "Corte",
+        "Colorimetría"
+      ],
+      "bio": "Directora Creativa. Especialista en arquitectura capilar y colorimetría avanzada.",
+      "rating": 5,
+      "avatarUrl": ""
+    }
   }
 ]

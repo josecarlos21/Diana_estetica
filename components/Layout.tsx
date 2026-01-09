@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Settings, X, Sparkles, Sun, Moon, Home, Calendar, History } from 'lucide-react';
 import { COMPANY_INFO } from '../constants';
+import { SvgBackdrop } from './SvgBackdrop';
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -50,31 +51,33 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="min-h-screen flex flex-col transition-colors duration-500 font-sans selection:bg-brand-200 selection:text-brand-900 bg-white dark:bg-dark-900">
+    <div className="relative min-h-screen flex flex-col transition-colors duration-500 font-sans selection:bg-brand-200 selection:text-brand-900 bg-white dark:bg-dark-900 overflow-hidden">
+
+      <SvgBackdrop className="opacity-70" />
 
       {/* BOTÓN FLOTANTE DE CONFIGURACIÓN/MENÚ */}
-      <div className="fixed top-6 right-6 z-[100] flex flex-col items-end gap-3">
+      <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-[100] flex flex-col items-end gap-3">
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="w-14 h-14 flex items-center justify-center bg-white/90 dark:bg-black/90 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 group"
+          className="w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center bg-white/90 dark:bg-black/90 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 group"
           aria-label="Menú de ajustes"
         >
           {isMenuOpen ? (
-            <X className="w-6 h-6 text-black dark:text-white" />
+            <X className="w-7 h-7 text-black dark:text-white" />
           ) : (
-            <Settings className="w-6 h-6 text-black dark:text-white group-hover:rotate-90 transition-transform duration-700 ease-out" />
+            <Settings className="w-7 h-7 text-black dark:text-white group-hover:rotate-90 transition-transform duration-700 ease-out" />
           )}
         </button>
 
         {/* MENÚ DESPLEGABLE COMPACTO */}
         {isMenuOpen && (
-          <div className="animate-scale-in origin-top-right w-64 bg-white/95 dark:bg-black/95 backdrop-blur-2xl border border-zinc-200 dark:border-zinc-800 shadow-[0_20px_50px_rgba(0,0,0,0.15)] p-2">
+          <div className="animate-scale-in origin-top-right w-72 sm:w-80 bg-white/95 dark:bg-black/95 backdrop-blur-2xl border border-zinc-200 dark:border-zinc-800 shadow-[0_20px_50px_rgba(0,0,0,0.15)] p-3">
             <div className="flex flex-col gap-1">
               <div className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-900 mb-1 flex justify-between items-center">
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Preferencias</span>
                 <button
                   onClick={toggleTheme}
-                  className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors rounded-full"
+                  className="p-3 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors rounded-full"
                   title="Cambiar Tema"
                 >
                   {isDark ? <Sun className="w-4 h-4 text-brand-500" /> : <Moon className="w-4 h-4 text-zinc-600" />}
@@ -86,9 +89,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                   key={link.path}
                   to={link.path}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest transition-all ${isActive(link.path)
-                      ? 'bg-brand-500 text-white'
-                      : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-black dark:hover:text-white'
+                  className={`flex items-center gap-3 px-5 py-4 text-xs font-extrabold uppercase tracking-[0.25em] transition-all ${isActive(link.path)
+                    ? 'bg-brand-500 text-white'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-black dark:hover:text-white'
                     }`}
                 >
                   {link.icon}

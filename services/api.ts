@@ -1,7 +1,7 @@
 import { Service, Stylist, BookingHistoryItem } from '../types';
 
 // Use environment variable for flexibility
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
 export const api = {
     getServices: async (): Promise<Service[]> => {

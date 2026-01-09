@@ -94,5 +94,42 @@
       "rating": 5,
       "avatarUrl": ""
     }
+  },
+  {
+    "id": "BK-5455-1767951057623",
+    "serviceIds": [
+      "s1"
+    ],
+    "stylistId": "diana",
+    "date": "2026-01-09T06:00:00.000Z",
+    "time": "10:00",
+    "customerName": "Chrome Tester",
+    "customerPhone": "+52 52 5252-5252",
+    "customerEmail": "test@chrome.com",
+    "status": "confirmed",
+    "createdAt": "2026-01-09T09:30:57.623Z",
+    "services": [
+      {
+        "service": {
+          "id": "s1",
+          "name": "Signature Cut",
+          "description": "Diseño de corte personalizado basado en tu estructura ósea.",
+          "price": 850,
+          "durationMin": 60,
+          "category": "Corte"
+        }
+      }
+    ],
+    "stylist": {
+      "id": "diana",
+      "name": "Diana",
+      "specialties": [
+        "Corte",
+        "Colorimetría"
+      ],
+      "bio": "Directora Creativa. Especialista en arquitectura capilar y colorimetría avanzada.",
+      "rating": 5,
+      "avatarUrl": ""
+    }
   }
 ]

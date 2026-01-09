@@ -1,16 +1,17 @@
 import { GoogleGenAI } from "@google/genai";
 import { SERVICES } from '../constants';
+import { Service } from '../types';
 
 // Initializing the GenAI client.
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-// The @google/genai SDK takes an options object with apiKey
-const ai = new GoogleGenAI({ apiKey: apiKey || 'PLACEHOLDER' });
+const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY;
+const genAI = new GoogleGenAI(apiKey || 'PLACEHOLDER');
 
-const servicesContext = SERVICES.map(s =>
-  `- ID: "${s.id}" | Nombre: "${s.name}" | Categoría: ${s.category} | Precio: $${s.price} | Desc: ${s.description}`
-).join('\n');
+const generateSystemInstruction = (services: Service[]) => {
+  const servicesContext = services.map(s =>
+    `- ID: "${s.id}" | Nombre: "${s.name}" | Categoría: ${s.category} | Precio: $${s.price} | Desc: ${s.description}`
+  ).join('\n');
 
-const SYSTEM_INSTRUCTION = `
+  return `
 Eres "EstiloBot", el asesor experto de "DIANA STUDIO".
 Tu objetivo es recomendar servicios del catálogo basados en las necesidades del cliente.
 
@@ -24,6 +25,7 @@ RESPUESTA (JSON):
   "recommendedServiceId": "ID exacto del servicio o null."
 }
 `;
+};
 
 export interface AIResponse {
   thought: string;
@@ -31,7 +33,11 @@ export interface AIResponse {
   recommendedServiceId: string | null;
 }
 
-export const getStylistAdvice = async (userMessage: string, signal?: AbortSignal): Promise<AIResponse> => {
+export const getStylistAdvice = async (
+  userMessage: string,
+  signal?: AbortSignal,
+  dynamicServices?: Service[]
+): Promise<AIResponse> => {
   if (!apiKey || apiKey === 'PLACEHOLDER' || apiKey === 'PLACEHOLDER_API_KEY') {
     console.warn("Gemini API Key missing or invalid.");
     return {
@@ -41,30 +47,31 @@ export const getStylistAdvice = async (userMessage: string, signal?: AbortSignal
     };
   }
 
-  try {
-    // Race against a timeout to prevent infinite hanging
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("Timeout")), 15000)
-    );
+  const systemInstruction = generateSystemInstruction(dynamicServices || SERVICES);
 
-    // Using the NEW SDK pattern: ai.models.generateContent
-    const apiCall = ai.models.generateContent({
+  try {
+    const model = genAI.getGenerativeModel({
       model: 'gemini-1.5-flash',
-      contents: userMessage,
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
+      systemInstruction: systemInstruction,
+      generationConfig: {
         responseMimeType: "application/json",
         temperature: 0.7,
       }
     });
 
-    const response = await Promise.race([apiCall, timeoutPromise]) as any;
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Timeout")), 15000)
+    );
+
+    const apiCall = model.generateContent(userMessage);
+
+    const result = await Promise.race([apiCall, timeoutPromise]) as any;
+    const response = result.response;
 
     if (signal?.aborted) {
       throw new DOMException('Aborted', 'AbortError');
     }
 
-    // In @google/genai, it's a getter response.text, not a function response.text()
     const text = response.text || "{}";
     return JSON.parse(text) as AIResponse;
   } catch (error: any) {

@@ -1,6 +1,7 @@
 import { Service, Stylist, BookingHistoryItem } from '../types';
 
-const API_URL = 'http://localhost:3001/api';
+// Use environment variable for flexibility
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 export const api = {
     getServices: async (): Promise<Service[]> => {
@@ -26,5 +27,23 @@ export const api = {
             throw new Error(error.error || 'Failed to create booking');
         }
         return res.json();
+    },
+
+    getBookings: async (): Promise<BookingHistoryItem[]> => {
+        const res = await fetch(`${API_URL}/bookings`);
+        if (!res.ok) throw new Error('Failed to fetch bookings');
+        const bookings = await res.json();
+
+        // Transform backend response to match frontend BookingHistoryItem if necessary
+        return bookings.map((b: any) => ({
+            id: b.id,
+            serviceName: b.services?.[0]?.service?.name || 'Servicio Personalizado',
+            stylistName: b.stylist?.name || 'Staff Diana Studio',
+            date: new Date(b.date),
+            time: b.time,
+            price: b.services?.[0]?.service?.price || 0, // Simplified for now
+            status: b.status,
+            image: b.services?.[0]?.service?.image || ''
+        }));
     }
 };

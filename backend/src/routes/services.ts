@@ -1,16 +1,16 @@
-import { Router } from 'express'
-import { prisma } from '../prisma'
+import { Router } from 'express';
+import { db } from '../db';
 
-const router = Router()
+const router = Router();
 
 // GET /api/services
 router.get('/', async (req, res) => {
     try {
-        const services = await prisma.service.findMany()
-        res.json(services)
+        const services = await db.read('services.json');
+        res.json(services);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch services' })
+        res.status(500).json({ error: 'Failed to fetch services' });
     }
-})
+});
 
-export default router
+export default router;

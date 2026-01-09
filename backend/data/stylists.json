@@ -1,0 +1,24 @@
+[
+    {
+        "id": "diana",
+        "name": "Diana",
+        "specialties": [
+            "Corte",
+            "Colorimetría"
+        ],
+        "bio": "Directora Creativa. Especialista en arquitectura capilar y colorimetría avanzada.",
+        "rating": 5.0,
+        "avatarUrl": ""
+    },
+    {
+        "id": "staff",
+        "name": "Senior Staff",
+        "specialties": [
+            "Tratamiento",
+            "Peinado"
+        ],
+        "bio": "Equipo técnico especializado bajo la metodología Diana Studio.",
+        "rating": 4.8,
+        "avatarUrl": ""
+    }
+]

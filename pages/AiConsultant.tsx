@@ -2,8 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, ArrowLeft } from 'lucide-react';
 import { ChatMessage } from '../types';
 import { getStylistAdvice, AIResponse } from '../services/geminiService';
+import { api } from '../services/api';
+import { Service } from '../types';
 import { Link } from 'react-router-dom';
-import { SERVICES, QUICK_PROMPTS } from '../constants';
+import { QUICK_PROMPTS } from '../constants';
 import { Button } from '../components/Button';
 import { ChatMessageItem } from '../components/ChatMessageItem';
 
@@ -18,6 +20,7 @@ export const AiConsultant: React.FC = () => {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [services, setServices] = useState<Service[]>([]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -28,6 +31,16 @@ export const AiConsultant: React.FC = () => {
 
   useEffect(() => {
     isMounted.current = true;
+    const loadServices = async () => {
+      try {
+        const s = await api.getServices();
+        if (isMounted.current) setServices(s);
+      } catch (e) {
+        console.warn("AI using static catalog fallback");
+      }
+    };
+    loadServices();
+
     return () => {
       isMounted.current = false;
       if (abortControllerRef.current) {
@@ -60,7 +73,7 @@ export const AiConsultant: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const aiData: AIResponse = await getStylistAdvice(text, controller.signal);
+      const aiData: AIResponse = await getStylistAdvice(text, controller.signal, services.length > 0 ? services : undefined);
 
       // 3. Safety Check: If unmounted, stop.
       if (!isMounted.current) return;

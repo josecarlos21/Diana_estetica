@@ -1,0 +1,50 @@
+[
+    {
+        "id": "s1",
+        "name": "Signature Cut",
+        "description": "Diseño de corte personalizado basado en tu estructura ósea.",
+        "price": 850,
+        "durationMin": 60,
+        "category": "Corte"
+    },
+    {
+        "id": "s2",
+        "name": "Peinado Social",
+        "description": "Estilizado de larga duración para eventos exclusivos.",
+        "price": 950,
+        "durationMin": 60,
+        "category": "Peinado"
+    },
+    {
+        "id": "s3",
+        "name": "Balayage Premium",
+        "description": "Técnica exclusiva de iluminación orgánica sin marcas.",
+        "price": 2800,
+        "durationMin": 240,
+        "category": "Colorimetría"
+    },
+    {
+        "id": "s4",
+        "name": "Botox Capilar",
+        "description": "Recuperación de brillo instantáneo y nutrición profunda.",
+        "price": 1400,
+        "durationMin": 90,
+        "category": "Tratamiento"
+    },
+    {
+        "id": "s5",
+        "name": "Full Color Mix",
+        "description": "Color global de alta definición con protección de fibra.",
+        "price": 1650,
+        "durationMin": 120,
+        "category": "Colorimetría"
+    },
+    {
+        "id": "s6",
+        "name": "Hidratación Zen",
+        "description": "Tratamiento spa de vapor para cuero cabelludo sensible.",
+        "price": 900,
+        "durationMin": 45,
+        "category": "Tratamiento"
+    }
+]

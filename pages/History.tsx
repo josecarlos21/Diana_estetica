@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Calendar, Clock, MapPin, Repeat, AlertCircle, CheckCircle, XCircle, ArrowRight, History as HistoryIcon } from 'lucide-react';
 import { MOCK_HISTORY } from '../constants';
-import { BookingStatus } from '../types';
+import { BookingStatus, BookingHistoryItem } from '../types';
 import { Button } from '../components/Button';
 import { ImagePlaceholder } from '../components/ImagePlaceholder';
 import { Link } from 'react-router-dom';
@@ -59,7 +59,8 @@ export const History: React.FC = () => {
       </div>
     );
   }
-  <div className="max-w-4xl mx-auto px-6 py-12">
+  return (
+    <div className="max-w-4xl mx-auto px-6 py-12">
 
     <div className="mb-12 border-b border-black dark:border-white pb-6">
       <h1 className="text-4xl font-bold text-black dark:text-white tracking-tighter uppercase">Bitácora de Estilo</h1>
@@ -157,6 +158,6 @@ export const History: React.FC = () => {
         </div>
       </>
     )}
-  </div>
+    </div>
   );
 };

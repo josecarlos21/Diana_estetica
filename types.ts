@@ -47,6 +47,7 @@ export interface ChatMessage {
   timestamp: Date;
   isThinking?: boolean;
   recommendedService?: Service;
+  suggestedOptions?: string[];
 }
 
 export enum BookingStatus {

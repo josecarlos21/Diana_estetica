@@ -117,7 +117,7 @@ export const AiConsultant: React.FC = () => {
           {/* 3D Glass Gear Icon */}
           <div className="relative group cursor-help">
             <div className="absolute inset-0 bg-cyan-400/30 blur-lg rounded-full opacity-50 group-hover:opacity-100 transition-opacity"></div>
-            <button className="relative w-12 h-12 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] hover:shadow-cyan-500/20 hover:scale-110 active:scale-95 transition-all duration-300 group-hover:border-cyan-400/50">
+            <button aria-label="Ajustes de IA" className="relative w-12 h-12 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] hover:shadow-cyan-500/20 hover:scale-110 active:scale-95 transition-all duration-300 group-hover:border-cyan-400/50">
               <Settings className="w-6 h-6 text-cyan-600 dark:text-cyan-300 animate-[spin_10s_linear_infinite]" />
             </button>
           </div>

@@ -76,8 +76,8 @@ body::before {
 
 .glass-panel {
   background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 
 .dark .glass-panel {

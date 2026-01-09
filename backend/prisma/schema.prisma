@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Service {
+  id          String           @id @default(uuid())
+  name        String
+  description String
+  price       Float
+  durationMin Int
+  category    String // Enum stored as string
+  image       String?
+  bookings    BookingService[]
+}
+
+model Stylist {
+  id          String    @id @default(uuid())
+  name        String
+  bio         String
+  rating      Float
+  avatarUrl   String?
+  specialties String // JSON array string of categories
+  bookings    Booking[]
+}
+
+model Booking {
+  id            String           @id @default(uuid())
+  date          DateTime
+  time          String
+  customerName  String
+  customerPhone String
+  customerEmail String
+  status        String           @default("confirmed")
+  stylistId     String?
+  stylist       Stylist?         @relation(fields: [stylistId], references: [id])
+  services      BookingService[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+}
+
+model BookingService {
+  bookingId String
+  serviceId String
+  booking   Booking @relation(fields: [bookingId], references: [id])
+  service   Service @relation(fields: [serviceId], references: [id])
+
+  @@id([bookingId, serviceId])
+}

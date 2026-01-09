@@ -1,0 +1,7 @@
+{
+  "name": "EstiloPro MX - Agendamiento Inteligente",
+  "description": "Plataforma de gestión de citas para estética y barbería con asistente de estilo IA.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

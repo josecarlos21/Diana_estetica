@@ -13,48 +13,85 @@ const getGenAI = () => {
   return genAI;
 };
 
-const generateSystemInstruction = (services: Service[]) => {
-  const servicesContext = services.map(s =>
-    `- ID: "${s.id}" | Nombre: "${s.name}" | Categoría: ${s.category} | Precio: $${s.price} | Desc: ${s.description}`
-  ).join('\n');
-
-  return `
-Eres "EstiloBot", el asesor experto de "DIANA STUDIO".
-Tu objetivo es recomendar servicios del catálogo basados en las necesidades del cliente.
-
-CATÁLOGO:
-${servicesContext}
-
-RESPUESTA (JSON):
-{
-  "thought": "Análisis interno rápido.",
-  "chatResponse": "Respuesta breve y experta (max 180 caracteres). Usa **negritas** para énfasis.",
-  "recommendedServiceId": "ID exacto del servicio o null."
+export interface ClientProfile {
+  hairType: string;         // e.g., "Lacio", "Rizado", "Ondulado"
+  scalpCondition: string;   // e.g., "Graso", "Seco", "Normal", "Caspa"
+  hairGoal: string;         // e.g., "Volumen", "Alisado", "Color"
+  recommendedFrequency: string; // e.g., "Mensual", "Bimestral"
 }
-`;
-};
 
 export interface AIResponse {
   thought: string;
   chatResponse: string;
   recommendedServiceId: string | null;
+  updatedProfile?: ClientProfile;
+  suggestedOptions?: string[]; // New field for guided interaction
 }
+
+const generateSystemInstruction = (services: Service[], currentProfile?: ClientProfile) => {
+  const servicesContext = services.map(s =>
+    `- ID: "${s.id}" | Nombre: "${s.name}" | Categoría: ${s.category} | Precio: $${s.price} | Desc: ${s.description}`
+  ).join('\n');
+
+  const profileContext = currentProfile ? `
+  PERFIL ACTUAL DEL CLIENTE (Actualiza si hay nuevos datos):
+  - Tipo: ${currentProfile.hairType}
+  - Condición: ${currentProfile.scalpCondition}
+  - Objetivo: ${currentProfile.hairGoal}
+  ` : 'PERFIL DEL CLIENTE: Aún no identificado.';
+
+  return `
+Eres "EstiloBot", el asesor experto de "DIANA STUDIO", un salón de alta gama.
+Tu objetivo es doble:
+1. Recomendar servicios del catálogo basados en las necesidades.
+2. CONSTRUIR UN PERFIL TÉCNICO del cliente extrayendo datos de la charla (Tipo de cabello, Condición, Objetivo).
+
+CATÁLOGO:
+${servicesContext}
+
+${profileContext}
+
+INSTRUCCIONES CLAVE:
+- NO permitas que el usuario escriba libremente. DEBES proveer "suggestedOptions" para guiar la respuesta.
+- Si falta el Tipo de Cabello, ofrece opciones como: ["Lacio", "Ondulado", "Rizado"].
+- Si falta la Condición, ofrece: ["Seco", "Graso", "Normal", "Con Caspa"].
+- Si falta el Objetivo, ofrece: ["Volumen", "Alisado", "Hidratación", "Color", "Corte"].
+- Sé amable, profesional y usa emojis elegantes (✨, 💆‍♀️).
+
+RESPUESTA (JSON):
+{
+  "thought": "Breve razonamiento.",
+  "chatResponse": "Tu respuesta al cliente (max 200 caracteres). Usa **negritas**.",
+  "recommendedServiceId": "ID del servicio o null.",
+  "updatedProfile": {
+    "hairType": "Lacio/Ondulado/Rizado o 'No identificado'",
+    "scalpCondition": "Seco/Graso/Normal o 'No identificado'",
+    "hairGoal": "Objetivo/No identificado",
+    "recommendedFrequency": "Frecuencia sugerida/Por definir"
+  },
+  "suggestedOptions": ["Opción 1", "Opción 2", "Opción 3"]
+}
+`;
+};
 
 export const getStylistAdvice = async (
   userMessage: string,
   signal?: AbortSignal,
-  dynamicServices?: Service[]
+  dynamicServices?: Service[],
+  currentProfile?: ClientProfile
 ): Promise<AIResponse> => {
   const activeGenAI = getGenAI();
   if (!activeGenAI) {
     return {
-      thought: "No valid API Key detected",
-      chatResponse: "Modo demo: IA no configurada.",
-      recommendedServiceId: null
+      thought: "Modo Demo: Simulación de flujo",
+      chatResponse: "Modo Demo: Hola, soy EstiloBot. ¿Cómo describirías tu tipo de cabello?",
+      recommendedServiceId: null,
+      updatedProfile: undefined,
+      suggestedOptions: ["Lacio", "Ondulado", "Rizado", "Afro"]
     };
   }
 
-  const systemInstruction = generateSystemInstruction(dynamicServices || SERVICES);
+  const systemInstruction = generateSystemInstruction(dynamicServices || SERVICES, currentProfile);
 
   try {
     const model = (activeGenAI as any).getGenerativeModel({
@@ -80,7 +117,16 @@ export const getStylistAdvice = async (
     }
 
     const text = response.text || "{}";
-    return JSON.parse(text) as AIResponse;
+    const parsed = JSON.parse(text);
+
+    return {
+      thought: parsed.thought || '',
+      chatResponse: parsed.chatResponse || 'Lo siento, no pude procesar eso.',
+      recommendedServiceId: parsed.recommendedServiceId || null,
+      updatedProfile: parsed.updatedProfile || undefined,
+      suggestedOptions: parsed.suggestedOptions || []
+    };
+
   } catch (error: any) {
     if (error.name === 'AbortError' || (signal?.aborted)) {
       throw error;
@@ -90,8 +136,9 @@ export const getStylistAdvice = async (
 
     return {
       thought: "Error de conexión o timeout",
-      chatResponse: "Lo siento, el servicio está tardando demasiado o no responde. ¿Podrías intentarlo de nuevo?",
-      recommendedServiceId: null
+      chatResponse: "Lo siento, el servicio está tardando demasiado. ¿Podemos intentar de nuevo?",
+      recommendedServiceId: null,
+      suggestedOptions: ["Reintentar"]
     };
   }
 };

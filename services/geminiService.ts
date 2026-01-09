@@ -2,9 +2,16 @@ import { GoogleGenAI } from "@google/genai";
 import { SERVICES } from '../constants';
 import { Service } from '../types';
 
-// Initializing the GenAI client.
+// Initializing the GenAI client lazily to avoid throwing at module load if apiKey is placeholder
 const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY;
-const genAI = new GoogleGenAI(apiKey || 'PLACEHOLDER');
+let genAI: GoogleGenAI | null = null;
+
+const getGenAI = () => {
+  if (!genAI && apiKey && apiKey !== 'PLACEHOLDER' && apiKey !== 'PLACEHOLDER_API_KEY') {
+    genAI = new GoogleGenAI(apiKey);
+  }
+  return genAI;
+};
 
 const generateSystemInstruction = (services: Service[]) => {
   const servicesContext = services.map(s =>
@@ -38,11 +45,11 @@ export const getStylistAdvice = async (
   signal?: AbortSignal,
   dynamicServices?: Service[]
 ): Promise<AIResponse> => {
-  if (!apiKey || apiKey === 'PLACEHOLDER' || apiKey === 'PLACEHOLDER_API_KEY') {
-    console.warn("Gemini API Key missing or invalid.");
+  const activeGenAI = getGenAI();
+  if (!activeGenAI) {
     return {
-      thought: "No API Key",
-      chatResponse: "Lo siento, estoy en modo demostración y no tengo conexión al cerebro de IA configurada.",
+      thought: "No valid API Key detected",
+      chatResponse: "Modo demo: IA no configurada.",
       recommendedServiceId: null
     };
   }
@@ -50,7 +57,7 @@ export const getStylistAdvice = async (
   const systemInstruction = generateSystemInstruction(dynamicServices || SERVICES);
 
   try {
-    const model = (genAI as any).getGenerativeModel({
+    const model = (activeGenAI as any).getGenerativeModel({
       model: 'gemini-1.5-flash',
       systemInstruction: systemInstruction,
       generationConfig: {

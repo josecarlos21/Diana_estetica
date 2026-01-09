@@ -222,10 +222,11 @@ export const Booking: React.FC = () => {
                     const sel = bookingData.serviceIds.includes(s.id);
                     const info = totals.services.find(ts => ts.id === s.id);
                     const disc = sel && info?.isDiscounted;
+                    const delayStyle = { "--delay": `${idx * 0.03}s` } as React.CSSProperties;
                     return (
                       <button
                         key={s.id} onClick={() => toggleService(s.id)}
-                        style={{ "--delay": `${idx * 0.03}s` } as React.CSSProperties}
+                        style={delayStyle}
                         className={`relative aspect-[16/9] flex flex-col justify-between p-5 border-2 transition-all duration-300 text-left animate-delay ${sel ? 'bg-black dark:bg-white border-brand-500 shadow-xl scale-[0.98]' : 'bg-zinc-50 dark:bg-zinc-900 border-transparent hover:border-zinc-200 dark:hover:border-zinc-800'
                           }`}
                       >

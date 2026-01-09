@@ -225,9 +225,9 @@ export const Booking: React.FC = () => {
                     return (
                       <button
                         key={s.id} onClick={() => toggleService(s.id)}
-                        className={`relative aspect-[16/9] flex flex-col justify-between p-5 border-2 transition-all duration-300 text-left ${sel ? 'bg-black dark:bg-white border-brand-500 shadow-xl scale-[0.98]' : 'bg-zinc-50 dark:bg-zinc-900 border-transparent hover:border-zinc-200 dark:hover:border-zinc-800'
+                        style={{ "--delay": `${idx * 0.03}s` } as React.CSSProperties}
+                        className={`relative aspect-[16/9] flex flex-col justify-between p-5 border-2 transition-all duration-300 text-left animate-delay ${sel ? 'bg-black dark:bg-white border-brand-500 shadow-xl scale-[0.98]' : 'bg-zinc-50 dark:bg-zinc-900 border-transparent hover:border-zinc-200 dark:hover:border-zinc-800'
                           }`}
-                        style={{ animationDelay: `${idx * 0.03}s` }}
                       >
                         <div className={`w-5 h-5 border flex items-center justify-center mb-3 ${sel ? 'bg-brand-500 border-brand-500' : 'border-zinc-300 dark:border-zinc-700'}`}>
                           {sel && <Check className="w-3 h-3 text-white" strokeWidth={5} />}
@@ -322,27 +322,28 @@ export const Booking: React.FC = () => {
                 <form onSubmit={handleSubmit} className="space-y-10">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-12">
                     <div className="relative">
-                      <label className="text-[8px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-1 block">Nombre Completo</label>
-                      <input type="text" className="w-full bg-transparent border-b border-zinc-200 text-xl font-black py-2 focus:border-black dark:focus:border-white outline-none uppercase" value={bookingData.customerName} onChange={e => setBookingData({ ...bookingData, customerName: e.target.value })} />
+                      <label htmlFor="customerName" className="text-[8px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-1 block">Nombre Completo</label>
+                      <input id="customerName" type="text" placeholder="EJ. MARÍA GARCÍA" className="w-full bg-transparent border-b border-zinc-200 text-xl font-black py-2 focus:border-black dark:focus:border-white outline-none uppercase" value={bookingData.customerName} onChange={e => setBookingData({ ...bookingData, customerName: e.target.value })} />
                       {touched.customerName && errors.customerName && <span className="text-[8px] text-brand-500 uppercase font-black absolute -bottom-5">{errors.customerName}</span>}
                     </div>
                     <div className="relative">
-                      <label className="text-[8px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-1 block">WhatsApp</label>
-                      <input type="tel" className="w-full bg-transparent border-b border-zinc-200 text-xl font-black py-2 focus:border-black dark:focus:border-white outline-none uppercase" value={bookingData.customerPhone} onChange={e => setBookingData({ ...bookingData, customerPhone: formatPhoneNumber(e.target.value) })} />
+                      <label htmlFor="customerPhone" className="text-[8px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-1 block">WhatsApp</label>
+                      <input id="customerPhone" type="tel" placeholder="+52 00 0000-0000" className="w-full bg-transparent border-b border-zinc-200 text-xl font-black py-2 focus:border-black dark:focus:border-white outline-none uppercase" value={bookingData.customerPhone} onChange={e => setBookingData({ ...bookingData, customerPhone: formatPhoneNumber(e.target.value) })} />
                       {touched.customerPhone && errors.customerPhone && <span className="text-[8px] text-brand-500 uppercase font-black absolute -bottom-5">{errors.customerPhone}</span>}
                     </div>
                     <div className="relative">
-                      <label className="text-[8px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-1 block">Correo Electrónico</label>
-                      <input type="email" className="w-full bg-transparent border-b border-zinc-200 text-xl font-black py-2 focus:border-black dark:focus:border-white outline-none" value={bookingData.customerEmail} onChange={e => setBookingData({ ...bookingData, customerEmail: e.target.value })} />
+                      <label htmlFor="customerEmail" className="text-[8px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-1 block">Correo Electrónico</label>
+                      <input id="customerEmail" type="email" placeholder="EMAIL@EJEMPLO.COM" className="w-full bg-transparent border-b border-zinc-200 text-xl font-black py-2 focus:border-black dark:focus:border-white outline-none" value={bookingData.customerEmail} onChange={e => setBookingData({ ...bookingData, customerEmail: e.target.value })} />
                       {touched.customerEmail && errors.customerEmail && <span className="text-[8px] text-brand-500 uppercase font-black absolute -bottom-5">{errors.customerEmail}</span>}
                     </div>
 
                     {/* TARJETA DE CÓDIGO PROMOCIONAL ROSA */}
                     <div className="bg-brand-500 p-6 flex flex-col justify-center relative shadow-xl transform hover:rotate-1 transition-transform">
                       <div className="absolute top-2 right-2 opacity-20"><Tag className="w-8 h-8 text-white" /></div>
-                      <label className="text-[9px] font-black uppercase tracking-[0.3em] text-white/90 mb-3 block">¿Tienes un código?</label>
+                      <label htmlFor="promoCode" className="text-[9px] font-black uppercase tracking-[0.3em] text-white/90 mb-3 block">¿Tienes un código?</label>
                       <div className="relative flex items-center">
                         <input
+                          id="promoCode"
                           type="text"
                           className="w-full bg-white/10 border-b-2 border-white/40 text-2xl font-black py-2 outline-none uppercase placeholder:text-white/20 text-white focus:border-white transition-colors"
                           placeholder="DIANA10"

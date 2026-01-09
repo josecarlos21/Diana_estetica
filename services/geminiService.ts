@@ -50,7 +50,7 @@ export const getStylistAdvice = async (
   const systemInstruction = generateSystemInstruction(dynamicServices || SERVICES);
 
   try {
-    const model = genAI.getGenerativeModel({
+    const model = (genAI as any).getGenerativeModel({
       model: 'gemini-1.5-flash',
       systemInstruction: systemInstruction,
       generationConfig: {
